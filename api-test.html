@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenWeatherMap API Key Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4361ee;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>OpenWeatherMap API Key Test</h1>
+    
+    <div class="container">
+        <label for="api-key">Your API Key:</label>
+        <input type="text" id="api-key" placeholder="Enter your OpenWeatherMap API key">
+        
+        <button id="test-btn">Test API Key</button>
+        
+        <div id="result" style="display: none;" class="result"></div>
+    </div>
+    
+    <script>
+        document.getElementById('test-btn').addEventListener('click', testApiKey);
+        
+        async function testApiKey() {
+            const apiKey = document.getElementById('api-key').value.trim();
+            const resultEl = document.getElementById('result');
+            
+            if (!apiKey) {
+                showError('Please enter an API key');
+                return;
+            }
+            
+            resultEl.innerHTML = 'Testing API key...';
+            resultEl.style.display = 'block';
+            
+            try {
+                const url = `https://api.openweathermap.org/data/2.5/weather?q=London&appid=${apiKey}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Success! Your API key is working correctly.');
+                } else {
+                    throw new Error(`API responded with status ${response.status}: ${data.message}`);
+                }
+            } catch (error) {
+                showError(`API test failed: ${error.message}`);
+            }
+        }
+        
+        function showSuccess(message) {
+            const resultEl = document.getElementById('result');
+            resultEl.className = 'result success';
+            resultEl.innerHTML = `<h3>✅ ${message}</h3>`;
+        }
+        
+        function showError(message) {
+            const resultEl = document.getElementById('result');
+            resultEl.className = 'result error';
+            resultEl.innerHTML = `<h3>❌ ${message}</h3>`;
+        }
+    </script>
+</body>
+</html> 

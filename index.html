@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherVerse - Global Weather App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-cloud-sun"></i>
+                <h1>WeatherVerse</h1>
+            </div>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search for a city...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="units-toggle">
+                <button id="celsius" class="active">°C</button>
+                <button id="fahrenheit">°F</button>
+            </div>
+        </header>
+
+        <main class="mobile-optimized">
+            <!-- Weather Animation Scene -->
+            <div class="weather-animation-container">
+                <div class="weather-animation-scene">
+                    <!-- Phone Animation -->
+                    <div class="phone-container">
+                        <div class="phone">
+                            <div class="phone-notch"></div>
+                            <div class="phone-button"></div>
+                            <div class="phone-screen">
+                                <div class="phone-weather-app">
+                                    <div class="phone-weather-header">
+                                        <div class="phone-location" id="phone-location">--</div>
+                                        <div class="phone-date" id="phone-date">--</div>
+                                    </div>
+                                    <div class="phone-weather-icon sunny"></div>
+                                    <div class="phone-weather-icon cloudy"></div>
+                                    <div class="phone-weather-icon rainy"></div>
+                                    <div class="phone-weather-icon snowy"></div>
+                                    <div class="phone-temp" id="phone-temp">--°</div>
+                                    <div class="phone-weather-details">
+                                        <div class="phone-weather-detail">
+                                            <i class="fas fa-tint"></i>
+                                            <span id="phone-humidity">--</span>
+                                        </div>
+                                        <div class="phone-weather-detail">
+                                            <i class="fas fa-wind"></i>
+                                            <span id="phone-wind">--</span>
+                                        </div>
+                                        <div class="phone-weather-detail">
+                                            <i class="fas fa-sun"></i>
+                                            <span id="phone-uv">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Weather Elements -->
+                    <div class="sun">
+                        <div class="sun-ray sun-ray-1"></div>
+                        <div class="sun-ray sun-ray-2"></div>
+                        <div class="sun-ray sun-ray-3"></div>
+                        <div class="sun-ray sun-ray-4"></div>
+                    </div>
+                    
+                    <div class="clouds-container">
+                        <div class="cloud cloud-1"></div>
+                        <div class="cloud cloud-2"></div>
+                        <div class="cloud cloud-3"></div>
+                    </div>
+                    
+                    <div class="rain-container">
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="current-weather">
+                <div class="weather-card">
+                    <div class="location">
+                        <h2 id="city">--</h2>
+                        <p id="country">--</p>
+                        <p id="date">--</p>
+                    </div>
+                    <div class="weather-info">
+                        <div class="temperature">
+                            <h2 id="temp">--</h2>
+                            <div class="hi-lo">
+                                <span id="temp-hi">--</span> / <span id="temp-lo">--</span>
+                            </div>
+                        </div>
+                        <div class="weather-icon">
+                            <img id="weather-icon" src="" alt="Weather Icon">
+                            <p id="weather-description">--</p>
+                        </div>
+                    </div>
+                    <div class="weather-details">
+                        <div class="detail">
+                            <i class="fas fa-temperature-high"></i>
+                            <div>
+                                <p>Feels Like</p>
+                                <p id="feels-like">--</p>
+                            </div>
+                        </div>
+                        <div class="detail">
+                            <i class="fas fa-tint"></i>
+                            <div>
+                                <p>Humidity</p>
+                                <p id="humidity">--</p>
+                            </div>
+                        </div>
+                        <div class="detail">
+                            <i class="fas fa-wind"></i>
+                            <div>
+                                <p>Wind</p>
+                                <p id="wind">--</p>
+                            </div>
+                        </div>
+                        <div class="detail">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                            <div>
+                                <p>Pressure</p>
+                                <p id="pressure">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="forecast">
+                <h2>5-Day Forecast</h2>
+                <div class="forecast-container" id="forecast-container">
+                    <!-- Forecast cards will be added here dynamically -->
+                </div>
+            </section>
+
+            <section class="weather-map">
+                <h2>Weather Map</h2>
+                <div class="map-options">
+                    <button class="map-option active" data-layer="temp">Temperature</button>
+                    <button class="map-option" data-layer="precipitation">Precipitation</button>
+                    <button class="map-option" data-layer="wind">Wind</button>
+                    <button class="map-option" data-layer="clouds">Clouds</button>
+                </div>
+                <div id="map">
+                    <div class="map-placeholder">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <p>Click to load interactive weather map</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="additional-info">
+                <div class="air-quality">
+                    <h3>Air Quality</h3>
+                    <div class="aqi-meter">
+                        <div class="aqi-value" id="aqi-value">--</div>
+                        <div class="aqi-label" id="aqi-label">--</div>
+                    </div>
+                </div>
+                <div class="sun-moon">
+                    <div class="sun-info">
+                        <h3>Sunrise & Sunset</h3>
+                        <div class="sun-times">
+                            <div>
+                                <i class="fas fa-sunrise"></i>
+                                <p id="sunrise">--</p>
+                            </div>
+                            <div>
+                                <i class="fas fa-sunset"></i>
+                                <p id="sunset">--</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="moon-info">
+                        <h3>Moon Phase</h3>
+                        <div class="moon-phase">
+                            <div id="moon-icon">
+                                <i class="fas fa-moon"></i>
+                            </div>
+                            <p id="moon-phase">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mobile-compact">
+            <p>&copy; WeatherVerse by Khushansh</p>
+        </footer>
+    </div>
+
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
