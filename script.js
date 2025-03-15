@@ -610,6 +610,7 @@ function updateSunMoonInfo(weatherData) {
 // Apply weather background
 function applyWeatherBackground(weatherMain) {
     const weatherCard = document.querySelector('.weather-card');
+    const animationContainer = document.querySelector('.weather-animation-container');
     
     // Remove all weather classes
     weatherCard.classList.remove('clear-sky', 'clouds', 'rain', 'snow', 'thunderstorm', 'mist');
@@ -618,26 +619,45 @@ function applyWeatherBackground(weatherMain) {
     switch (weatherMain.toLowerCase()) {
         case 'clear':
             weatherCard.classList.add('clear-sky');
+            // Set real background image for clear weather
+            animationContainer.style.backgroundImage = 'url("backgrounds/clear.jpg")';
             break;
         case 'clouds':
             weatherCard.classList.add('clouds');
+            // Set real background image for cloudy weather
+            animationContainer.style.backgroundImage = 'url("backgrounds/clouds.jpg")';
             break;
         case 'rain':
         case 'drizzle':
             weatherCard.classList.add('rain');
+            // Set real background image for rainy weather
+            animationContainer.style.backgroundImage = 'url("backgrounds/rain.jpg")';
             break;
         case 'snow':
             weatherCard.classList.add('snow');
+            // Set real background image for snowy weather
+            animationContainer.style.backgroundImage = 'url("backgrounds/snow.jpg")';
             break;
         case 'thunderstorm':
             weatherCard.classList.add('thunderstorm');
+            // Use rain background for thunderstorm
+            animationContainer.style.backgroundImage = 'url("backgrounds/rain.jpg")';
             break;
         case 'mist':
         case 'fog':
         case 'haze':
             weatherCard.classList.add('mist');
+            // Use cloudy background for mist/fog
+            animationContainer.style.backgroundImage = 'url("backgrounds/clouds.jpg")';
             break;
+        default:
+            // Default to clear sky
+            weatherCard.classList.add('clear-sky');
+            animationContainer.style.backgroundImage = 'url("backgrounds/clear.jpg")';
     }
+    
+    // Add background styling
+    animationContainer.style.backgroundSize = 'cover';
 }
 
 // Update weather animation based on current weather

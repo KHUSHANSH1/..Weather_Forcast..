@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherVerse Screenshot Creator</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #e8f0fe;
+        }
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .phone-frame {
+            width: 360px;
+            height: 740px;
+            margin: 0 auto;
+            border: 12px solid #111;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        .phone-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .screenshot-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .screenshot {
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .screenshot canvas {
+            max-width: 100%;
+            display: block;
+        }
+        .screenshot p {
+            margin: 10px 0 5px;
+            text-align: center;
+        }
+        .instructions {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .instructions h2 {
+            color: #1a73e8;
+            margin-top: 0;
+        }
+        .instructions ol {
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WeatherVerse Screenshot Creator</h1>
+    
+    <div class="container">
+        <div class="instructions">
+            <h2>How to Create App Screenshots</h2>
+            <ol>
+                <li>The iframe below shows your WeatherVerse app in a phone frame.</li>
+                <li>Interact with the app to show the view you want to capture.</li>
+                <li>Click "Capture Screenshot" to take a screenshot of the current view.</li>
+                <li>Click "Download Screenshot" to save the image to your computer.</li>
+                <li>Save the screenshots to the "screenshots" folder for use in the Play Store listing.</li>
+            </ol>
+        </div>
+        
+        <div class="phone-frame">
+            <iframe src="index.html" id="appFrame"></iframe>
+        </div>
+        
+        <div class="buttons">
+            <button id="captureBtn">Capture Screenshot</button>
+            <button id="downloadBtn">Download Screenshot</button>
+        </div>
+        
+        <div class="screenshot-container" id="screenshotContainer"></div>
+    </div>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        const captureBtn = document.getElementById('captureBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const screenshotContainer = document.getElementById('screenshotContainer');
+        let currentScreenshot = null;
+        let screenshotCount = 1;
+        
+        captureBtn.addEventListener('click', captureScreenshot);
+        downloadBtn.addEventListener('click', downloadScreenshot);
+        
+        function captureScreenshot() {
+            const iframe = document.getElementById('appFrame');
+            const iframeWindow = iframe.contentWindow;
+            
+            html2canvas(iframeWindow.document.body).then(canvas => {
+                // Create screenshot container
+                const screenshotDiv = document.createElement('div');
+                screenshotDiv.className = 'screenshot';
+                
+                // Add canvas to container
+                screenshotDiv.appendChild(canvas);
+                
+                // Add caption
+                const caption = document.createElement('p');
+                caption.textContent = `Screenshot ${screenshotCount}`;
+                screenshotDiv.appendChild(caption);
+                
+                // Add to page
+                screenshotContainer.appendChild(screenshotDiv);
+                
+                // Save reference to current screenshot
+                currentScreenshot = canvas;
+                screenshotCount++;
+            });
+        }
+        
+        function downloadScreenshot() {
+            if (!currentScreenshot) {
+                alert('Please capture a screenshot first');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = `screenshot${screenshotCount-1}.jpg`;
+            link.href = currentScreenshot.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+    </script>
+</body>
+</html>

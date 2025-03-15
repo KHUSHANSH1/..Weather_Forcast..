@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherVerse Image Downloader</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #e8f0fe;
+        }
+        h1, h2 {
+            color: #1a73e8;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .image-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .image-info {
+            padding: 15px;
+        }
+        .image-info h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .image-info p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0d47a1;
+        }
+        .status {
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .progress-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress {
+            height: 100%;
+            background-color: #1a73e8;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>WeatherVerse Image Downloader</h1>
+    <p style="text-align: center;">Download weather images for your WeatherVerse app</p>
+    
+    <div class="container">
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            <p id="progressText">0/0 images downloaded</p>
+        </div>
+        
+        <button id="downloadAllBtn">Download All Images</button>
+        
+        <h2>Weather Background Images</h2>
+        <div class="image-grid" id="backgroundImages"></div>
+        
+        <h2>App Screenshots</h2>
+        <div class="image-grid" id="screenshotImages"></div>
+    </div>
+    
+    <script>
+        // Image data
+        const images = [
+            // Weather backgrounds
+            {
+                url: 'https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=800&auto=format&fit=crop',
+                filename: 'clear.jpg',
+                type: 'background',
+                description: 'Clear sky background'
+            },
+            {
+                url: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=800&auto=format&fit=crop',
+                filename: 'clouds.jpg',
+                type: 'background',
+                description: 'Cloudy background'
+            },
+            {
+                url: 'https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=800&auto=format&fit=crop',
+                filename: 'rain.jpg',
+                type: 'background',
+                description: 'Rainy background'
+            },
+            {
+                url: 'https://images.unsplash.com/photo-1516431883659-655d41c09bf9?w=800&auto=format&fit=crop',
+                filename: 'snow.jpg',
+                type: 'background',
+                description: 'Snowy background'
+            },
+            
+            // Screenshots for Play Store
+            {
+                url: 'https://images.unsplash.com/photo-1584267385494-9fdd9a71ad75?w=400&auto=format&fit=crop',
+                filename: 'screenshot1.jpg',
+                type: 'screenshot',
+                description: 'App screenshot 1'
+            },
+            {
+                url: 'https://images.unsplash.com/photo-1592210454359-9043f067919b?w=400&auto=format&fit=crop',
+                filename: 'screenshot2.jpg',
+                type: 'screenshot',
+                description: 'App screenshot 2'
+            }
+        ];
+        
+        // DOM elements
+        const backgroundImagesContainer = document.getElementById('backgroundImages');
+        const screenshotImagesContainer = document.getElementById('screenshotImages');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        
+        // Initialize
+        let downloadedCount = 0;
+        
+        // Create image cards
+        function createImageCards() {
+            images.forEach(image => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                
+                const img = document.createElement('img');
+                img.src = image.url;
+                img.alt = image.description;
+                
+                const info = document.createElement('div');
+                info.className = 'image-info';
+                
+                const title = document.createElement('h3');
+                title.textContent = image.filename;
+                
+                const desc = document.createElement('p');
+                desc.textContent = image.description;
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.onclick = () => downloadImage(image);
+                
+                const status = document.createElement('div');
+                status.className = 'status';
+                status.id = `status-${image.filename.replace('.', '-')}`;
+                status.style.display = 'none';
+                
+                info.appendChild(title);
+                info.appendChild(desc);
+                info.appendChild(downloadBtn);
+                info.appendChild(status);
+                
+                card.appendChild(img);
+                card.appendChild(info);
+                
+                if (image.type === 'background') {
+                    backgroundImagesContainer.appendChild(card);
+                } else {
+                    screenshotImagesContainer.appendChild(card);
+                }
+            });
+        }
+        
+        // Download a single image
+        function downloadImage(image) {
+            const statusEl = document.getElementById(`status-${image.filename.replace('.', '-')}`);
+            statusEl.textContent = 'Downloading...';
+            statusEl.className = 'status';
+            statusEl.style.display = 'block';
+            
+            fetch(image.url)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    
+                    // Create folder structure in filename
+                    let folderPrefix = '';
+                    if (image.type === 'background') {
+                        folderPrefix = 'backgrounds/';
+                    } else if (image.type === 'screenshot') {
+                        folderPrefix = 'screenshots/';
+                    }
+                    
+                    a.download = folderPrefix + image.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    
+                    statusEl.textContent = 'Downloaded!';
+                    statusEl.className = 'status success';
+                    
+                    // Update progress
+                    downloadedCount++;
+                    updateProgress();
+                })
+                .catch(error => {
+                    console.error('Error downloading image:', error);
+                    statusEl.textContent = 'Error downloading';
+                    statusEl.className = 'status error';
+                });
+        }
+        
+        // Download all images
+        function downloadAllImages() {
+            downloadedCount = 0;
+            updateProgress();
+            
+            // Reset all status elements
+            images.forEach(image => {
+                const statusEl = document.getElementById(`status-${image.filename.replace('.', '-')}`);
+                statusEl.textContent = 'Waiting...';
+                statusEl.className = 'status';
+                statusEl.style.display = 'block';
+            });
+            
+            // Download images with a slight delay to avoid browser blocking
+            images.forEach((image, index) => {
+                setTimeout(() => {
+                    downloadImage(image);
+                }, index * 1000); // 1 second delay between downloads
+            });
+        }
+        
+        // Update progress bar and text
+        function updateProgress() {
+            const percentage = (downloadedCount / images.length) * 100;
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `${downloadedCount}/${images.length} images downloaded`;
+        }
+        
+        // Event listeners
+        downloadAllBtn.addEventListener('click', downloadAllImages);
+        
+        // Initialize
+        createImageCards();
+        updateProgress();
+    </script>
+</body>
+</html> 
