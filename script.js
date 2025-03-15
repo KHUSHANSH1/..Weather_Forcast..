@@ -24,7 +24,21 @@ async function fetchWithErrorHandling(url, description) {
     console.log(`Fetching ${description} from: ${url}`);
     
     try {
-        const response = await fetch(getApiUrl(url));
+        // Add cache-busting parameter to prevent browser caching
+        const urlWithNoCaching = url + (url.includes('?') ? '&' : '?') + '_nocache=' + new Date().getTime();
+        console.log(`Using no-cache URL: ${urlWithNoCaching}`);
+        
+        // Create fetch options with cache control
+        const fetchOptions = {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        };
+        
+        const response = await fetch(getApiUrl(urlWithNoCaching), fetchOptions);
         
         if (!response.ok) {
             throw new Error(`${description} API responded with status: ${response.status} - ${response.statusText}`);
@@ -172,7 +186,11 @@ function handleSearch() {
 function changeUnit(unit) {
     if (unit === currentUnit) return;
     
+    // Store the previous unit to log the change
+    const previousUnit = currentUnit;
     currentUnit = unit;
+    
+    console.log(`Changing unit from ${previousUnit} to ${currentUnit}`);
     
     // Update UI
     if (unit === 'metric') {
@@ -183,9 +201,21 @@ function changeUnit(unit) {
         fahrenheitBtn.classList.add('active');
     }
     
-    // Update weather data if available
-    if (currentWeatherData) {
-        updateWeatherUI(currentWeatherData);
+    // Always fetch new data when changing units to ensure correct values
+    if (currentCoords) {
+        console.log(`Fetching new weather data for coords: ${currentCoords.lat}, ${currentCoords.lon} with unit: ${currentUnit}`);
+        showLoader();
+        getWeatherData(currentCoords.lat, currentCoords.lon, currentCity, currentWeatherData?.country);
+    } else if (currentCity) {
+        console.log(`Fetching new weather data for city: ${currentCity} with unit: ${currentUnit}`);
+        showLoader();
+        getWeatherByCity(currentCity);
+    } else {
+        console.log('No location set, cannot fetch new data');
+        // If no location is set yet, just update the UI with existing data
+        if (currentWeatherData) {
+            updateWeatherUI(currentWeatherData);
+        }
     }
 }
 
@@ -331,14 +361,19 @@ async function getWeatherByCoords(lat, lon) {
 // Get weather data
 async function getWeatherData(lat, lon, cityName, countryCode) {
     try {
-        console.log(`Fetching weather data for coordinates: ${lat}, ${lon}`);
+        console.log(`Fetching weather data for coordinates: ${lat}, ${lon} with unit: ${currentUnit}`);
         
         // Get current weather
         const weatherUrl = `${BASE_URL}/weather?lat=${lat}&lon=${lon}&units=${currentUnit}&appid=${API_KEY}`;
+        console.log('Weather API URL:', weatherUrl);
         const weatherData = await fetchWithErrorHandling(weatherUrl, 'Weather');
+        
+        // Verify the temperature unit in the response
+        console.log(`Received temperature: ${weatherData.main.temp} ${currentUnit === 'metric' ? '°C' : '°F'}`);
         
         // Get 5-day forecast
         const forecastUrl = `${BASE_URL}/forecast?lat=${lat}&lon=${lon}&units=${currentUnit}&appid=${API_KEY}`;
+        console.log('Forecast API URL:', forecastUrl);
         const forecastData = await fetchWithErrorHandling(forecastUrl, 'Forecast');
         
         // Get air quality data
@@ -390,6 +425,9 @@ async function getWeatherData(lat, lon, cityName, countryCode) {
 function updateWeatherUI(data) {
     const { current, forecast, airQuality, city, country } = data;
     
+    console.log('Updating UI with unit:', currentUnit);
+    console.log('Current weather data:', current);
+    
     // Update current weather
     cityEl.textContent = city;
     countryEl.textContent = country;
@@ -397,6 +435,7 @@ function updateWeatherUI(data) {
     
     const temp = Math.round(current.main.temp);
     const tempUnit = currentUnit === 'metric' ? '°C' : '°F';
+    console.log(`Temperature: ${temp}${tempUnit}`);
     tempEl.textContent = `${temp}${tempUnit}`;
     
     const tempHi = Math.round(current.main.temp_max);
