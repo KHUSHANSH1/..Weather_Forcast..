@@ -17,6 +17,8 @@
     --transition: all 0.3s ease;
     --border-radius: 12px;
     --gradient: linear-gradient(135deg, #1a73e8, #4cc9f0);
+    --error-color: #f44336;
+    --warning-color: #ff9800;
 }
 
 body {
@@ -1154,4 +1156,53 @@ footer a:hover {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
+}
+
+/* Offline notification styles */
+#offline-notification {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.offline-banner {
+    background-color: var(--warning-color);
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.3s ease-out;
+}
+
+.offline-banner i {
+    margin-right: 10px;
+}
+
+.offline-banner button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 15px;
+    padding: 0 5px;
+}
+
+.offline-banner button:hover {
+    opacity: 0.8;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
 }

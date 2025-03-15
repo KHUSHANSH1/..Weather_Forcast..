@@ -1,23 +1,8 @@
 // API Configuration
-const API_KEY = 'e89804389d6faa940a80244b2f14224f'; // Add your OpenWeatherMap API key here
+const API_KEY = 'e89804389d6faa940a80244b2f14224f'; // OpenWeatherMap API key
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const GEO_URL = 'https://api.openweathermap.org/geo/1.0';
 const WEATHER_ICON_URL = 'https://openweathermap.org/img/wn/';
-
-// Fallback API Configuration (WeatherAPI.com - free tier)
-// Uncomment and add your key if OpenWeatherMap is not working
-// const USE_FALLBACK_API = false;
-// const FALLBACK_API_KEY = 'your_weatherapi_key_here';
-// const FALLBACK_API_URL = 'https://api.weatherapi.com/v1';
-
-// CORS Proxy Configuration (use only if needed)
-const USE_CORS_PROXY = false; // Set to true if you encounter CORS issues
-const CORS_PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
-
-// Helper function to handle API URLs with optional CORS proxy
-function getApiUrl(url) {
-    return USE_CORS_PROXY ? `${CORS_PROXY_URL}${url}` : url;
-}
 
 // Helper function for API fetch with error handling
 async function fetchWithErrorHandling(url, description) {
@@ -28,17 +13,7 @@ async function fetchWithErrorHandling(url, description) {
         const urlWithNoCaching = url + (url.includes('?') ? '&' : '?') + '_nocache=' + new Date().getTime();
         console.log(`Using no-cache URL: ${urlWithNoCaching}`);
         
-        // Create fetch options with cache control
-        const fetchOptions = {
-            method: 'GET',
-            headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-            }
-        };
-        
-        const response = await fetch(getApiUrl(urlWithNoCaching), fetchOptions);
+        const response = await fetch(urlWithNoCaching);
         
         if (!response.ok) {
             throw new Error(`${description} API responded with status: ${response.status} - ${response.statusText}`);
@@ -91,8 +66,7 @@ let currentCoords = null;
 
 // Initialize the application
 function initApp() {
-    // Verify API key first
-    verifyApiKey();
+    console.log('Initializing WeatherVerse app...');
     
     // Event listeners
     searchBtn.addEventListener('click', handleSearch);
@@ -112,6 +86,31 @@ function initApp() {
             initMap();
         }
     });
+    
+    // Add offline/online event listeners
+    window.addEventListener('online', handleOnlineStatusChange);
+    window.addEventListener('offline', handleOnlineStatusChange);
+    
+    // Check initial online status
+    handleOnlineStatusChange();
+    
+    // Load default city or use geolocation
+    showLoader();
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                getWeatherByCoords(latitude, longitude);
+            },
+            error => {
+                console.error('Error getting location:', error);
+                getWeatherByCity('London'); // Default city
+            },
+            { timeout: 5000 } // Set a timeout of 5 seconds for geolocation
+        );
+    } else {
+        getWeatherByCity('London'); // Default city if geolocation is not supported
+    }
 }
 
 // Verify API key validity
@@ -154,7 +153,7 @@ async function verifyApiKey() {
         } else if (error.message.includes('429')) {
             alert('API rate limit exceeded. Please try again later or use a different API key.');
         } else {
-            alert(`API connection error: ${error.message}. Check your internet connection or try enabling the CORS proxy.`);
+            alert(`API connection error: ${error.message}. Check your internet connection or try again.`);
             // Try with default city anyway
             getWeatherByCity('London');
         }
@@ -318,16 +317,7 @@ async function getWeatherByCity(city) {
         await getWeatherData(lat, lon, name, country);
     } catch (error) {
         console.error('Error fetching weather by city:', error);
-        
-        // Try alternative API key if the error seems to be related to the API key
-        if (error.message.includes('401') || error.message.includes('403')) {
-            alert('API key issue detected. Please check your OpenWeatherMap API key.');
-        } else if (error.message.includes('CORS') || error.message.includes('blocked')) {
-            alert('CORS issue detected. Try enabling the CORS proxy in the script.js file.');
-        } else {
-            alert(`Failed to fetch weather data: ${error.message}. Please try again.`);
-        }
-        
+        alert(`Failed to fetch weather data: ${error.message}. Please try again.`);
         hideLoader();
     }
 }
@@ -407,16 +397,7 @@ async function getWeatherData(lat, lon, cityName, countryCode) {
         hideLoader();
     } catch (error) {
         console.error('Error fetching weather data:', error);
-        
-        // Provide more specific error messages
-        if (error.message.includes('401') || error.message.includes('403')) {
-            alert('API key issue detected. Please check your OpenWeatherMap API key.');
-        } else if (error.message.includes('CORS') || error.message.includes('blocked')) {
-            alert('CORS issue detected. Try enabling the CORS proxy in the script.js file.');
-        } else {
-            alert(`Failed to fetch weather data: ${error.message}. Please try again.`);
-        }
-        
+        alert(`Failed to fetch weather data: ${error.message}. Please try again.`);
         hideLoader();
     }
 }
@@ -817,6 +798,53 @@ function getMoonPhaseInfo(daysSinceNewMoon) {
     }
     
     return phases[0]; // Default to new moon
+}
+
+// Handle online/offline status changes
+function handleOnlineStatusChange() {
+    const isOnline = navigator.onLine;
+    console.log(`Network status: ${isOnline ? 'Online' : 'Offline'}`);
+    
+    const body = document.body;
+    
+    if (!isOnline) {
+        // User is offline
+        body.classList.add('offline');
+        showOfflineNotification();
+    } else {
+        // User is online
+        body.classList.remove('offline');
+        hideOfflineNotification();
+    }
+}
+
+// Show offline notification
+function showOfflineNotification() {
+    // Remove existing notification if any
+    hideOfflineNotification();
+    
+    const notification = document.createElement('div');
+    notification.id = 'offline-notification';
+    notification.innerHTML = `
+        <div class="offline-banner">
+            <i class="fas fa-wifi"></i> You are offline. Some features may be limited.
+            <button id="close-offline-notification">×</button>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // Add event listener to close button
+    document.getElementById('close-offline-notification').addEventListener('click', () => {
+        hideOfflineNotification();
+    });
+}
+
+// Hide offline notification
+function hideOfflineNotification() {
+    const notification = document.getElementById('offline-notification');
+    if (notification) {
+        notification.remove();
+    }
 }
 
 // Initialize the app when DOM is loaded
