@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherVerse Unit Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-panel {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f0fe;
+            border-radius: 4px;
+        }
+        h2 {
+            color: #1a73e8;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>WeatherVerse Temperature Unit Test</h1>
+    
+    <div class="test-panel">
+        <h2>Test Temperature Unit Conversion</h2>
+        <p>This tool will help you test if the temperature unit conversion is working correctly.</p>
+        
+        <div>
+            <button id="testMetric">Test Celsius (Metric)</button>
+            <button id="testImperial">Test Fahrenheit (Imperial)</button>
+        </div>
+        
+        <div class="result" id="result">
+            <p>Results will appear here...</p>
+        </div>
+    </div>
+    
+    <div class="test-panel">
+        <h2>API Test</h2>
+        <p>Test if the OpenWeatherMap API is responding correctly with different units:</p>
+        
+        <div>
+            <button id="testApiMetric">Test API with Metric</button>
+            <button id="testApiImperial">Test API with Imperial</button>
+        </div>
+        
+        <div class="result" id="apiResult">
+            <p>API results will appear here...</p>
+        </div>
+    </div>
+    
+    <script>
+        // API Configuration
+        const API_KEY = 'e89804389d6faa940a80244b2f14224f'; // Using the same API key from script.js
+        const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+        
+        // DOM Elements
+        const resultEl = document.getElementById('result');
+        const apiResultEl = document.getElementById('apiResult');
+        
+        // Test buttons
+        document.getElementById('testMetric').addEventListener('click', () => testUnitConversion('metric'));
+        document.getElementById('testImperial').addEventListener('click', () => testUnitConversion('imperial'));
+        document.getElementById('testApiMetric').addEventListener('click', () => testApi('metric'));
+        document.getElementById('testApiImperial').addEventListener('click', () => testApi('imperial'));
+        
+        // Test temperature unit conversion
+        function testUnitConversion(unit) {
+            resultEl.innerHTML = `<p>Testing ${unit === 'metric' ? 'Celsius' : 'Fahrenheit'} conversion...</p>`;
+            
+            // Sample temperature in Kelvin (OpenWeatherMap's base unit)
+            const kelvinTemp = 293.15; // 20°C / 68°F
+            
+            // Convert to the selected unit
+            let convertedTemp;
+            let unitSymbol;
+            
+            if (unit === 'metric') {
+                convertedTemp = kelvinTemp - 273.15; // Convert to Celsius
+                unitSymbol = '°C';
+            } else {
+                convertedTemp = (kelvinTemp - 273.15) * 9/5 + 32; // Convert to Fahrenheit
+                unitSymbol = '°F';
+            }
+            
+            // Round to whole number
+            convertedTemp = Math.round(convertedTemp);
+            
+            // Display result
+            resultEl.innerHTML += `
+                <p>Original temperature: ${kelvinTemp}K</p>
+                <p>Converted to ${unit}: ${convertedTemp}${unitSymbol}</p>
+                <p>Expected value: ${unit === 'metric' ? '20°C' : '68°F'}</p>
+                <p>Conversion is ${Math.abs(convertedTemp - (unit === 'metric' ? 20 : 68)) < 1 ? 'correct' : 'incorrect'}</p>
+            `;
+        }
+        
+        // Test API with different units
+        async function testApi(unit) {
+            apiResultEl.innerHTML = `<p>Testing API with ${unit} units...</p>`;
+            
+            try {
+                // Use London as a test city
+                const lat = 51.5074;
+                const lon = -0.1278;
+                
+                // Construct API URL with the specified unit
+                const url = `${BASE_URL}/weather?lat=${lat}&lon=${lon}&units=${unit}&appid=${API_KEY}`;
+                
+                apiResultEl.innerHTML += `<p>API URL: ${url}</p>`;
+                
+                // Fetch data
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`API responded with status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display results
+                apiResultEl.innerHTML += `
+                    <p>API Response:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p>Temperature: ${data.main.temp}${unit === 'metric' ? '°C' : '°F'}</p>
+                `;
+            } catch (error) {
+                apiResultEl.innerHTML += `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html> 

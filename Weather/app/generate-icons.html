@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate WeatherVerse Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 10px;
+        }
+        .icon-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .icon-item {
+            margin: 10px;
+            text-align: center;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+        }
+        p {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WeatherVerse Icon Generator</h1>
+    <p>This tool generates app icons for your WeatherVerse PWA in various sizes.</p>
+    
+    <div class="icon-container" id="iconContainer"></div>
+    
+    <div style="text-align: center;">
+        <button id="generateBtn">Generate Icons</button>
+        <button id="downloadBtn" style="display: none;">Download All Icons</button>
+    </div>
+    
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const iconContainer = document.getElementById('iconContainer');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        generateBtn.addEventListener('click', generateIcons);
+        downloadBtn.addEventListener('click', downloadIcons);
+        
+        function generateIcons() {
+            iconContainer.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const iconItem = document.createElement('div');
+                iconItem.className = 'icon-item';
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                canvas.id = `icon-${size}`;
+                
+                const ctx = canvas.getContext('2d');
+                
+                // Draw background gradient
+                const gradient = ctx.createLinearGradient(0, 0, size, size);
+                gradient.addColorStop(0, '#1a73e8');
+                gradient.addColorStop(1, '#4cc9f0');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, size, size);
+                
+                // Draw sun
+                const sunRadius = size * 0.25;
+                ctx.fillStyle = '#FDB813';
+                ctx.beginPath();
+                ctx.arc(size * 0.6, size * 0.4, sunRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw cloud
+                ctx.fillStyle = 'white';
+                drawCloud(ctx, size * 0.35, size * 0.55, size * 0.4);
+                
+                // Add text if size is large enough
+                if (size >= 144) {
+                    ctx.fillStyle = 'white';
+                    ctx.font = `bold ${size * 0.1}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('WeatherVerse', size / 2, size * 0.85);
+                }
+                
+                iconItem.appendChild(canvas);
+                
+                const sizeLabel = document.createElement('div');
+                sizeLabel.textContent = `${size}x${size}`;
+                iconItem.appendChild(sizeLabel);
+                
+                iconContainer.appendChild(iconItem);
+            });
+            
+            downloadBtn.style.display = 'inline-block';
+        }
+        
+        function drawCloud(ctx, x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size * 0.3, Math.PI, Math.PI * 2);
+            ctx.arc(x + size * 0.2, y - size * 0.15, size * 0.25, Math.PI, Math.PI * 2);
+            ctx.arc(x + size * 0.4, y, size * 0.3, Math.PI, Math.PI * 2);
+            ctx.rect(x, y, size * 0.4, size * 0.3);
+            ctx.fill();
+        }
+        
+        function downloadIcons() {
+            sizes.forEach(size => {
+                const canvas = document.getElementById(`icon-${size}`);
+                const link = document.createElement('a');
+                link.download = `icon-${size}x${size}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html> 

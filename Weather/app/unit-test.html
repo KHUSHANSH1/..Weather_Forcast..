@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Unit Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #1a73e8;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .result {
+            background-color: #e8f0fe;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .success {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .error {
+            color: #c62828;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Temperature Unit Conversion Test</h1>
+    
+    <div class="container">
+        <h2>Direct API Test</h2>
+        <p>Test the OpenWeatherMap API with different units:</p>
+        
+        <div>
+            <button id="testMetric">Test with Celsius (metric)</button>
+            <button id="testImperial">Test with Fahrenheit (imperial)</button>
+        </div>
+        
+        <div class="result" id="apiResult">Results will appear here...</div>
+    </div>
+    
+    <div class="container">
+        <h2>Temperature Conversion Test</h2>
+        <p>Test temperature conversion between units:</p>
+        
+        <div>
+            <label for="tempInput">Enter temperature:</label>
+            <input type="number" id="tempInput" value="20" style="margin: 0 10px; padding: 5px;" aria-label="Temperature value">
+            
+            <label for="fromUnit">From:</label>
+            <select id="fromUnit" style="padding: 5px;">
+                <option value="celsius">Celsius</option>
+                <option value="fahrenheit">Fahrenheit</option>
+                <option value="kelvin">Kelvin</option>
+            </select>
+            
+            <span style="margin: 0 10px;">to</span>
+            
+            <label for="toUnit">To:</label>
+            <select id="toUnit" style="padding: 5px;">
+                <option value="celsius">Celsius</option>
+                <option value="fahrenheit" selected>Fahrenheit</option>
+                <option value="kelvin">Kelvin</option>
+            </select>
+            
+            <button id="convertBtn" style="margin-left: 10px;" aria-label="Convert temperature">Convert</button>
+        </div>
+        
+        <div class="result" id="conversionResult">Enter a temperature and click Convert</div>
+    </div>
+    
+    <script>
+        // API Configuration
+        const API_KEY = 'e89804389d6faa940a80244b2f14224f';
+        const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+        
+        // DOM Elements
+        const apiResultEl = document.getElementById('apiResult');
+        const tempInputEl = document.getElementById('tempInput');
+        const fromUnitEl = document.getElementById('fromUnit');
+        const toUnitEl = document.getElementById('toUnit');
+        const conversionResultEl = document.getElementById('conversionResult');
+        
+        // Event Listeners
+        document.getElementById('testMetric').addEventListener('click', () => testApi('metric'));
+        document.getElementById('testImperial').addEventListener('click', () => testApi('imperial'));
+        document.getElementById('convertBtn').addEventListener('click', convertTemperature);
+        
+        // Test API with different units
+        async function testApi(unit) {
+            apiResultEl.innerHTML = `<p>Testing API with ${unit} units...</p>`;
+            
+            try {
+                // Use London as a test city
+                const lat = 51.5074;
+                const lon = -0.1278;
+                
+                // Add cache-busting parameter
+                const timestamp = new Date().getTime();
+                const url = `${BASE_URL}/weather?lat=${lat}&lon=${lon}&units=${unit}&appid=${API_KEY}&_nocache=${timestamp}`;
+                
+                // Fetch with no-cache headers
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API responded with status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display results
+                const tempUnit = unit === 'metric' ? '°C' : '°F';
+                apiResultEl.innerHTML = `
+                    <p>City: ${data.name}, ${data.sys.country}</p>
+                    <p>Temperature: <span class="success">${data.main.temp}${tempUnit}</span></p>
+                    <p>Weather: ${data.weather[0].main} (${data.weather[0].description})</p>
+                    <p>Wind: ${data.wind.speed} ${unit === 'metric' ? 'm/s' : 'mph'}</p>
+                    <p>API URL: ${url}</p>
+                `;
+            } catch (error) {
+                apiResultEl.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Convert temperature between units
+        function convertTemperature() {
+            const temp = parseFloat(tempInputEl.value);
+            const fromUnit = fromUnitEl.value;
+            const toUnit = toUnitEl.value;
+            
+            if (isNaN(temp)) {
+                conversionResultEl.innerHTML = '<p class="error">Please enter a valid number</p>';
+                return;
+            }
+            
+            // Convert to Kelvin first (as intermediate)
+            let kelvin;
+            switch (fromUnit) {
+                case 'celsius':
+                    kelvin = temp + 273.15;
+                    break;
+                case 'fahrenheit':
+                    kelvin = (temp - 32) * 5/9 + 273.15;
+                    break;
+                case 'kelvin':
+                    kelvin = temp;
+                    break;
+            }
+            
+            // Convert from Kelvin to target unit
+            let result;
+            let unitSymbol;
+            switch (toUnit) {
+                case 'celsius':
+                    result = kelvin - 273.15;
+                    unitSymbol = '°C';
+                    break;
+                case 'fahrenheit':
+                    result = (kelvin - 273.15) * 9/5 + 32;
+                    unitSymbol = '°F';
+                    break;
+                case 'kelvin':
+                    result = kelvin;
+                    unitSymbol = 'K';
+                    break;
+            }
+            
+            // Round to 2 decimal places
+            result = Math.round(result * 100) / 100;
+            
+            conversionResultEl.innerHTML = `
+                <p>${temp} ${getUnitSymbol(fromUnit)} = <span class="success">${result} ${unitSymbol}</span></p>
+                <p>Formula used: ${getConversionFormula(fromUnit, toUnit)}</p>
+            `;
+        }
+        
+        // Get unit symbol
+        function getUnitSymbol(unit) {
+            switch (unit) {
+                case 'celsius': return '°C';
+                case 'fahrenheit': return '°F';
+                case 'kelvin': return 'K';
+            }
+        }
+        
+        // Get conversion formula
+        function getConversionFormula(from, to) {
+            if (from === to) return 'No conversion needed';
+            
+            switch (from + '-' + to) {
+                case 'celsius-fahrenheit': return '°F = (°C × 9/5) + 32';
+                case 'celsius-kelvin': return 'K = °C + 273.15';
+                case 'fahrenheit-celsius': return '°C = (°F - 32) × 5/9';
+                case 'fahrenheit-kelvin': return 'K = (°F - 32) × 5/9 + 273.15';
+                case 'kelvin-celsius': return '°C = K - 273.15';
+                case 'kelvin-fahrenheit': return '°F = (K - 273.15) × 9/5 + 32';
+            }
+        }
+    </script>
+</body>
+</html> 
